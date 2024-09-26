@@ -26,6 +26,7 @@ class Player(pygame.sprite.Sprite):
         self.y_change = 0
         self.facing =  'Idle'
         self.Last_Move = "Down"
+        
 
         self.x = (SCREEN_WIDTH-(PLAYER_SIZE_X * MUTIPIE_SIZE))/2
         self.y = (SCREEN_HEIGHT-(PLAYER_SIZE_Y * MUTIPIE_SIZE))/2
@@ -42,6 +43,8 @@ class Player(pygame.sprite.Sprite):
         self.rect.x = self.x
         self.rect.y = self.y
 
+        self.Hitbox = Hitbox(game,self.x+(5*MUTIPIE_SIZE),self.y+(18*MUTIPIE_SIZE),22*MUTIPIE_SIZE,10*MUTIPIE_SIZE)
+
     def update(self):
         self.movement()
         self.update_animation()
@@ -51,6 +54,8 @@ class Player(pygame.sprite.Sprite):
         
         self.rect.x += self.x_change
         self.rect.y += self.y_change
+
+        self.Hitbox.Move(self.x_change ,self.y_change)
         
         self.x_change = 0
         self.y_change = 0
@@ -147,18 +152,26 @@ class Map(pygame.sprite.Sprite):
 class Hitbox(pygame.sprite.Sprite):
     def __init__(self,game,x,y,width,height):
         self.game = game
-        self.x = x * TILESIZE
-        self.y = y * TILESIZE
+        self.x = x
+        self.y = y
         self.width = width
         self.height = height
-        self.layer = ""
-        self.groups = self.game.all_sprites
+        self._layer = 0
+
+        self.groups = self.game.all_sprites , self.game.wall
         pygame.sprite.Sprite.__init__(self,self.groups)
+
         self.image = pygame.Surface([self.width , self.height])
-        self.image.fill(BLUE)
+        self.image.set_colorkey(BLACK)
+        self.hitbox = pygame.Rect(0, 0, width , height)
         self.rect = self.image.get_rect()
         self.rect.x = self.x
         self.rect.y = self.y
+        pygame.draw.rect(self.image, RED, self.hitbox, 2)
+
+    def Move(self,x,y):
+        self.rect.x += x
+        self.rect.y += y
 
         
         
