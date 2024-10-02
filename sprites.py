@@ -43,8 +43,8 @@ class Player(pygame.sprite.Sprite):
         self.rect.x = self.x
         self.rect.y = self.y
 
-        self.Hitbox = Hitbox(game,self.x+(5*MUTIPIE_SIZE),self.y+(18*MUTIPIE_SIZE),22*MUTIPIE_SIZE,10*MUTIPIE_SIZE)
-
+        self.Hitbox = Hitbox(game,self.x+(8*MUTIPIE_SIZE),self.y+(18*MUTIPIE_SIZE),16*MUTIPIE_SIZE,10*MUTIPIE_SIZE)
+        
     def update(self):
         self.movement()
         self.update_animation()
@@ -195,4 +195,40 @@ class Wall(pygame.sprite.Sprite):
         self.rect.x = self.x
         self.rect.y = self.y
         pygame.draw.rect(self.image, RED, self.hitbox, 2)
+        
+class NPC(pygame.sprite.Sprite):
+    def __init__(self, game, x, y):
+        self.game = game
+        self.groups = self.game.all_sprites, self.game.npc
+        pygame.sprite.Sprite.__init__(self, self.groups)
+        self.facing = ''
+        self.image = pygame.Surface((TILESIZE, TILESIZE))
+        self.image.fill(BLUE) 
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.speed = 1
+        self.target_pos = (x, y)  
+        
+    def update(self):
+        self.move_to_target()
+    
+    def move_to_target(self):
+        if self.target_pos != None:
+            self.facing = 'Moving'
+            if self.rect.x < self.target_pos[0]:
+                self.rect.x += self.speed
+            elif self.rect.x > self.target_pos[0]:
+                self.rect.x -= self.speed
+
+            if self.rect.y < self.target_pos[1]:
+                self.rect.y += PLAYER_SPEED
+            elif self.rect.y > self.target_pos[1]:
+                self.rect.y -= self.speed
+
+        # ตรวจสอบว่าถึงจุดเป้าหมายแล้วหรือยัง
+        if (self.rect.x, self.rect.y) == self.target_pos:
+            self.target_pos = None  # เมื่อถึงเป้าหมายแล้ว
+            self.facing = "Idel"
+
         
