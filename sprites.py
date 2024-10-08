@@ -43,7 +43,7 @@ class Player(pygame.sprite.Sprite):
         self.rect.x = self.x
         self.rect.y = self.y
 
-        self.Hitbox = Hitbox(game,self.x+(8*MUTIPIE_SIZE),self.y+(18*MUTIPIE_SIZE),16*MUTIPIE_SIZE,10*MUTIPIE_SIZE)
+        self.Hitbox = Player_Hitbox(game,self.x+(8*MUTIPIE_SIZE),self.y+(20*MUTIPIE_SIZE),16*MUTIPIE_SIZE,10*MUTIPIE_SIZE)
         
     def update(self):
         self.movement()
@@ -51,12 +51,15 @@ class Player(pygame.sprite.Sprite):
         
         old_x = self.rect.x
         old_y = self.rect.y
+        old_x_hitbox =self.Hitbox.rect.x
+        old_y_hitbox =self.Hitbox.rect.y
         
-        self.rect.x += self.x_change
-        self.rect.y += self.y_change
+        self.hit_check()
+        
+        
 
-        self.Hitbox.Move(self.x_change ,self.y_change)
         
+
         self.x_change = 0
         self.y_change = 0
         
@@ -105,32 +108,84 @@ class Player(pygame.sprite.Sprite):
                 self.image = self.game.character_spritesheet.get_sprite(160,0,self.width,self.height)
             self.count_Move_loop = 0
             self.count_Move = 0
-            self.Last_Move = ""
+        
 
         
         self.image = pygame.transform.scale(self.image, (TILESIZE * MUTIPIE_SIZE , TILESIZE * MUTIPIE_SIZE ))
 
     def movement(self):
+        cheack = self.Hitbox.check_Boolean_Wall_Hit()
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
-            self.x_change -= PLAYER_SPEED
+            if cheack == False:
+                self.x_change -= PLAYER_SPEED
             self.facing = 'Left'
             self.Last_Move = "Left"
         
         if keys[pygame.K_RIGHT]:
-            self.x_change += PLAYER_SPEED
+            if cheack == False:
+                self.x_change += PLAYER_SPEED
             self.facing = 'Right'
             self.Last_Move = "Right"
         
         if keys[pygame.K_UP]:
-            self.y_change -= PLAYER_SPEED
+            if cheack == False:
+                self.y_change -= PLAYER_SPEED
             self.facing = 'Up'
             self.Last_Move = "Up"
         
         if keys[pygame.K_DOWN]:
-            self.y_change += PLAYER_SPEED
+            if cheack == False:
+                self.y_change += PLAYER_SPEED
             self.facing = 'Down'
             self.Last_Move = "Down"
+    
+    def hit_check(self):
+        hit = self.Hitbox.check_Wall_Hit()
+
+        if hit:
+            if self.Last_Move == "Left":
+                self.Hitbox.rect.x += 1
+                self.rect.x += 1
+
+            elif self.Last_Move == "Right":
+                self.Hitbox.rect.x -= 1
+                self.rect.x -= 1
+
+            if self.Last_Move == "Up":
+                self.Hitbox.rect.y += 1
+                self.rect.y += 1
+
+            elif self.Last_Move == "Down":
+                self.Hitbox.rect.y -= 1
+                self.rect.y -= 1
+
+            # if self.x_change < 0:
+            #     self.Hitbox.rect.x = hit[0].rect.right
+            #     self.rect.x = hit[0].rect.right - (TILESIZE-(-1*MUTIPIE_SIZE))+1
+
+            # elif self.x_change > 0:
+            #     self.Hitbox.rect.x = hit[0].rect.left - self.Hitbox.rect.width
+            #     self.rect.x = hit[0].rect.left - (self.rect.width-TILESIZE-(1*MUTIPIE_SIZE))
+            
+            
+            # if self.y_change < 0:
+            #     self.Hitbox.rect.y = hit[0].rect.bottom
+            #     self.rect.y = hit[0].rect.bottom - (self.rect.height-TILESIZE-(7*MUTIPIE_SIZE))
+    
+            # elif self.y_change > 0:
+            #     self.Hitbox.rect.y = hit[0].rect.top - self.Hitbox.rect.height
+            #     self.rect.y = hit[0].rect.top
+            
+            
+
+                
+        else:
+            self.rect.x += self.x_change
+            self.rect.y += self.y_change
+            self.Hitbox.Move(self.x_change, self.y_change)
+
+        
 
 class Map(pygame.sprite.Sprite):
     def __init__(self,game):
@@ -149,7 +204,7 @@ class Map(pygame.sprite.Sprite):
         #     return True
         return False
 
-class Hitbox(pygame.sprite.Sprite):
+class Player_Hitbox(pygame.sprite.Sprite):
     def __init__(self,game,x,y,width,height):
         self.game = game
         self.x = x
@@ -158,7 +213,7 @@ class Hitbox(pygame.sprite.Sprite):
         self.height = height
         self._layer = 0
 
-        self.groups = self.game.all_sprites , self.game.wall
+        self.groups = self.game.all_sprites , self.game.hitbox
         pygame.sprite.Sprite.__init__(self,self.groups)
 
         self.image = pygame.Surface([self.width , self.height])
@@ -172,6 +227,20 @@ class Hitbox(pygame.sprite.Sprite):
     def Move(self,x,y):
         self.rect.x += x
         self.rect.y += y
+    
+    def setposition(self,x,y):
+        self.rect.x = x
+        self.rect.y = y
+        
+    def check_Wall_Hit(self):
+        if pygame.sprite.spritecollide(self, self.game.wall, False):
+            return pygame.sprite.spritecollide(self, self.game.wall, False)
+
+    def check_Boolean_Wall_Hit(self):
+        if pygame.sprite.spritecollide(self, self.game.wall, False):
+            return True
+        else:
+            return False
 
         
         
@@ -230,5 +299,3 @@ class NPC(pygame.sprite.Sprite):
         if (self.rect.x, self.rect.y) == self.target_pos:
             self.target_pos = None  # เมื่อถึงเป้าหมายแล้ว
             self.facing = "Idel"
-
-        
