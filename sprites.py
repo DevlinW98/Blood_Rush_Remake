@@ -12,8 +12,8 @@ class Spritesheet:
         sprite.blit(self.sheet, (0,0) , (x , y , width , height) )
         sprite.set_colorkey(WHITE)
         return sprite
-        
 
+# ==============================================PLAYER===============================================================
 
 class Player(pygame.sprite.Sprite):
     def __init__(self,game):
@@ -47,42 +47,24 @@ class Player(pygame.sprite.Sprite):
         
     def update(self):
         self.movement()
-        self.update_animation()
-        
-        old_x = self.rect.x
-        old_y = self.rect.y
-        old_x_hitbox =self.Hitbox.rect.x
-        old_y_hitbox =self.Hitbox.rect.y
-        
+        self.update_animation()        
         self.hit_check()
-        
-        
-
-        
-
         self.x_change = 0
         self.y_change = 0
-        
         self.facing = "Idle"
-
-
 
     def update_animation(self):
         self.anime_walk()
         self.anime_stop()
         
-        
-
     def anime_walk(self):
         move_anime = {"Down" : 32 , "Up" : 224 , "Right" : 160 , "Left": 96}
         if self.facing != "Idle" :
             self.image = self.game.character_spritesheet.get_sprite(self.count_Move * TILESIZE,move_anime[self.facing] , self.width,self.height)
             self.count_Move_loop += 1
-                    
             if self.Last_Move == "Down":
                 if self.count_Move == 5:
                     self.count_Move = 0  
-
             else:
                 if self.count_Move == 6:
                     self.count_Move = 0
@@ -108,9 +90,6 @@ class Player(pygame.sprite.Sprite):
                 self.image = self.game.character_spritesheet.get_sprite(160,0,self.width,self.height)
             self.count_Move_loop = 0
             self.count_Move = 0
-        
-
-        
         self.image = pygame.transform.scale(self.image, (TILESIZE * MUTIPIE_SIZE , TILESIZE * MUTIPIE_SIZE ))
 
     def movement(self):
@@ -176,33 +155,10 @@ class Player(pygame.sprite.Sprite):
             # elif self.y_change > 0:
             #     self.Hitbox.rect.y = hit[0].rect.top - self.Hitbox.rect.height
             #     self.rect.y = hit[0].rect.top
-            
-            
-
-                
         else:
             self.rect.x += self.x_change
             self.rect.y += self.y_change
             self.Hitbox.Move(self.x_change, self.y_change)
-
-        
-
-class Map(pygame.sprite.Sprite):
-    def __init__(self,game):
-        self.game = game
-        self.groups = self.game.all_sprites
-        pygame.sprite.Sprite.__init__(self,self.groups)
-        self.image = self.game.Map_image.get_sprite(0,0,MAP_SIZE_X,MAP_SIZE_Y)
-        self.image = pygame.transform.scale(self.image, (MAP_SIZE_X * MUTIPIE_SIZE , MAP_SIZE_Y * MUTIPIE_SIZE ))
-        self.rect = self.image.get_rect()
-
-        self.rect.x = MAP_START_POSITION_X
-        self.rect.y = MAP_START_POSITION_Y
-        
-    def hit(self,data):
-        # if self.wall.colliderect(data):
-        #     return True
-        return False
 
 class Player_Hitbox(pygame.sprite.Sprite):
     def __init__(self,game,x,y,width,height):
@@ -213,7 +169,7 @@ class Player_Hitbox(pygame.sprite.Sprite):
         self.height = height
         self._layer = 0
 
-        self.groups = self.game.all_sprites , self.game.hitbox
+        self.groups = self.game.all_sprites , self.game.playerhitbox
         pygame.sprite.Sprite.__init__(self,self.groups)
 
         self.image = pygame.Surface([self.width , self.height])
@@ -222,7 +178,8 @@ class Player_Hitbox(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = self.x
         self.rect.y = self.y
-        pygame.draw.rect(self.image, RED, self.hitbox, 2)
+        if SHOWHITBOX:
+            pygame.draw.rect(self.image, RED, self.hitbox, 2)
 
     def Move(self,x,y):
         self.rect.x += x
@@ -242,8 +199,24 @@ class Player_Hitbox(pygame.sprite.Sprite):
         else:
             return False
 
+# ==============================================Map===============================================================
+
+class Map(pygame.sprite.Sprite):
+    def __init__(self,game):
+        self.game = game
+        self.groups = self.game.all_sprites
+        pygame.sprite.Sprite.__init__(self,self.groups)
+        self.image = self.game.Map_image.get_sprite(0,0,MAP_SIZE_X,MAP_SIZE_Y)
+        self.image = pygame.transform.scale(self.image, (MAP_SIZE_X * MUTIPIE_SIZE , MAP_SIZE_Y * MUTIPIE_SIZE ))
+        self.rect = self.image.get_rect()
+
+        self.rect.x = MAP_START_POSITION_X
+        self.rect.y = MAP_START_POSITION_Y
         
-        
+    def hit(self,data):
+        # if self.wall.colliderect(data):
+        #     return True
+        return False
 
 class Wall(pygame.sprite.Sprite):
     def __init__(self,game,x,y,width,height):
@@ -263,8 +236,11 @@ class Wall(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = self.x
         self.rect.y = self.y
-        pygame.draw.rect(self.image, RED, self.hitbox, 2)
+        if SHOWHITBOX:
+            pygame.draw.rect(self.image, RED, self.hitbox, 2)
         
+# ==============================================NPC===============================================================
+
 class NPC(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
         self.game = game
@@ -295,7 +271,43 @@ class NPC(pygame.sprite.Sprite):
             elif self.rect.y > self.target_pos[1]:
                 self.rect.y -= self.speed
 
-        # ตรวจสอบว่าถึงจุดเป้าหมายแล้วหรือยัง
         if (self.rect.x, self.rect.y) == self.target_pos:
-            self.target_pos = None  # เมื่อถึงเป้าหมายแล้ว
+            self.target_pos = None
             self.facing = "Idel"
+
+# ==============================================TrigerBox===============================================================
+
+class TrigerBox(pygame.sprite.Sprite):
+    def __init__(self,game,x,y,width,height):
+        self.game = game
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self._layer = 0
+        self.groups = self.game.all_sprites , self.game.trigger_donate_zone
+        pygame.sprite.Sprite.__init__(self,self.groups)
+
+        self.image = pygame.Surface([self.width , self.height])
+        self.image.set_colorkey(BLACK)
+        self.hitbox = pygame.Rect(0, 0, width , height)
+        self.rect = self.image.get_rect()
+        self.rect.x = self.x
+        self.rect.y = self.y
+        if SHOWHITBOX:
+            pygame.draw.rect(self.image, BLUE, self.hitbox, 2)
+
+    def Move(self,x,y):
+        self.rect.x += x
+        self.rect.y += y
+    
+    def setposition(self,x,y):
+        self.rect.x = x
+        self.rect.y = y
+        
+    def check_Hit(self,hitbox):
+        if pygame.sprite.spritecollide(self,hitbox, False):
+            return True
+        else:
+            return False
+        

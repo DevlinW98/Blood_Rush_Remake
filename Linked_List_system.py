@@ -41,6 +41,14 @@ class LinkedList:
             count += 1  # นับจำนวน node
             current = current.next  # ไปยัง node ถัดไป
         return count  # คืนค่าจำนวน node
+    
+    def pop_front(self):
+        if not self.isEmpty():
+            node = self.head
+            self.head = self.head.next
+            if self.head is None:
+                self.tail = None
+            return node.data
 
     
 linked_list = LinkedList()
