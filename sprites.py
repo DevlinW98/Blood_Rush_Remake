@@ -46,7 +46,7 @@ class Player(pygame.sprite.Sprite):
         self.rect.x = self.x
         self.rect.y = self.y
 
-        self.Hitbox = Player_Hitbox(game,self.x+(8*MUTIPIE_SIZE),self.y+(20*MUTIPIE_SIZE),16*MUTIPIE_SIZE,10*MUTIPIE_SIZE)
+        self.Hitbox = Player_Hitbox(game,self.x+(9*MUTIPIE_SIZE),self.y+(20*MUTIPIE_SIZE),14*MUTIPIE_SIZE,10*MUTIPIE_SIZE)
         
     def update(self):
         self.movement()
@@ -98,7 +98,6 @@ class Player(pygame.sprite.Sprite):
                 if self.count_Move == 6:
                     self.count_Move = 0
             
-            # set speed animetion
             if self.count_Move_loop >= 6:
                 self.count_Move_loop = 0
                 self.count_Move += 1
@@ -167,23 +166,22 @@ class Player(pygame.sprite.Sprite):
     
     def hit_check(self):
         hit = self.Hitbox.check_Wall_Hit()
-
         if hit:
-            if self.Last_Move == "Left":
-                self.rect.x += 1
-            elif self.Last_Move == "Right":
+            if self.Hitbox.check_Wall_Hit_xy() == "right":
                 self.rect.x -= 1
-            if self.Last_Move == "Up":
+            elif self.Hitbox.check_Wall_Hit_xy() == "left":
+                self.rect.x += 1
+            if self.Hitbox.check_Wall_Hit_xy() == "top":
                 self.rect.y += 1
-            elif self.Last_Move == "Down":
+            elif self.Hitbox.check_Wall_Hit_xy() == "bottom":
                 self.rect.y -= 1
-            self.Hitbox.setposition(self.rect.x + (8 * MUTIPIE_SIZE), self.rect.y + (20 * MUTIPIE_SIZE))
+                
+            self.Hitbox.setposition(self.rect.x + (9 * MUTIPIE_SIZE), self.rect.y + (20 * MUTIPIE_SIZE))
         else:
             self.rect.x += self.x_change
             self.rect.y += self.y_change
 
-            self.Hitbox.setposition(self.rect.x + (8 * MUTIPIE_SIZE), self.rect.y + (20 * MUTIPIE_SIZE))
-
+            self.Hitbox.setposition(self.rect.x + (9 * MUTIPIE_SIZE), self.rect.y + (20 * MUTIPIE_SIZE))
 
     def popobjcarry(self):
         self.iscarry = False
@@ -223,6 +221,24 @@ class Player_Hitbox(pygame.sprite.Sprite):
     def check_Wall_Hit(self):
         if pygame.sprite.spritecollide(self, self.game.wall, False):
             return pygame.sprite.spritecollide(self, self.game.wall, False)
+        
+    def check_Wall_Hit_xy(self):
+        collisions = pygame.sprite.spritecollide(self, self.game.wall, False)
+        if collisions:
+            # ถ้ามีการชนจะคืนค่าทิศทางที่เกิดการชน
+            hit_rect = collisions[0].rect  # กำหนดให้ชนกับกำแพงตัวแรก
+
+            if self.rect.bottom > hit_rect.top and self.rect.top < hit_rect.top:
+                return 'bottom'
+            elif self.rect.top < hit_rect.bottom and self.rect.bottom > hit_rect.bottom:
+                return 'top'
+            elif self.rect.right > hit_rect.left and self.rect.left < hit_rect.left:
+                return 'right'
+            elif self.rect.left < hit_rect.right and self.rect.right > hit_rect.right:
+                return 'left'
+        
+        return None, []
+
 
     def check_Boolean_Wall_Hit(self):
         if pygame.sprite.spritecollide(self, self.game.wall, False):
@@ -376,12 +392,24 @@ class Bed(pygame.sprite.Sprite):
             if self.blood_bag.status == "Full":
                 self.status = "Success"
                 self.on_bed.kill_text()
+        if self.status == "Giving blood":
+            if self.blood_bag.status == "Empty":
+                self.status = ""
+                self.on_bed.kill_text()
+                self.on_bed.kill()
+                self.on_bed = None
+                self.blood_bag.kill()
+                self.blood_bag = None
         
 
     def drawing_blood(self):
         self.status = "Drawing blood"
         self.blood_bag.status = "Drawing blood"
         self.blood_bag.bloodgroups = self.on_bed.blood_groups
+    
+    def Giving_blood(self):
+        self.status = "Giving blood"
+        self.blood_bag.status = "Giving blood"
 
     def add_blood_bag(self,obj):
         self.blood_bag = obj
@@ -420,6 +448,21 @@ class Iv_Stand(pygame.sprite.Sprite):
         self.groups = self.game.all_sprites,
         pygame.sprite.Sprite.__init__(self, self.groups)
         self.image = self.game.iv_stand_image.get_sprite(0, 0, self.width, self.height)
+        self.image = pygame.transform.scale(self.image, (self.width * MUTIPIE_SIZE, self.height * MUTIPIE_SIZE))
+        self.image.set_colorkey(BLACK)
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+class Bin(pygame.sprite.Sprite):
+    def __init__(self, game, x=0, y=0):
+        self._layer = MAP_LAYER
+        self.game = game
+        self.width = 20
+        self.height = 28
+        self.groups = self.game.all_sprites,
+        pygame.sprite.Sprite.__init__(self, self.groups)
+        self.image = self.game.bin_image.get_sprite(0, 0, self.width, self.height)
         self.image = pygame.transform.scale(self.image, (self.width * MUTIPIE_SIZE, self.height * MUTIPIE_SIZE))
         self.image.set_colorkey(BLACK)
         self.rect = self.image.get_rect()
@@ -509,7 +552,14 @@ class NPC(pygame.sprite.Sprite):
 
     def rotate(self, angle):
         self.rotation_angle = angle
-        self.update_img(self.rect.x, self.rect.y) 
+        self.update_img(self.rect.x, self.rect.y)
+    
+    def can_giving_blood(self,blood):
+        can = self.game.can_giving
+        for i in can[self.blood_groups]:
+            if i == blood:
+                return True
+        return False
     
     def type(self):
         return "NPC"
@@ -598,10 +648,31 @@ class Blood_Bag(pygame.sprite.Sprite):
             if self.count_Move_loop >= 60:
                 self.count_Move_loop = 0
                 self.count_Move += 1
+
+        elif self.status == "Giving blood":
+            self.image = self.game.blood_bag_image.get_sprite(self.count_Move * self.width,0, self.width,self.height)
+            self.image = pygame.transform.scale(self.image, (self.width * MUTIPIE_SIZE, self.height * MUTIPIE_SIZE))
+            self.create_text()
+            self.image.set_colorkey(BLACK)
+            self.count_Move_loop += 1
+            if self.count_Move == 9:
+                self.count_Move = 0
+                self.count_Move_loop = 0
+                self.status = "Empty"
+           
+            if self.count_Move_loop >= 60:
+                self.count_Move_loop = 0
+                self.count_Move += 1
+
         elif self.status == "Full":
             self.image = self.game.blood_bag_image.get_sprite(0, 0, self.width, self.height)
             self.image = pygame.transform.scale(self.image, (self.width * MUTIPIE_SIZE, self.height * MUTIPIE_SIZE))
             self.create_text()
+            self.image.set_colorkey(BLACK)
+
+        elif self.status == "Empty":
+            self.image = self.image = self.game.blood_bag_image.get_sprite(112, 0, self.width, self.height)
+            self.image = pygame.transform.scale(self.image, (self.width * MUTIPIE_SIZE, self.height * MUTIPIE_SIZE))
             self.image.set_colorkey(BLACK)
             
     def create_text(self):
