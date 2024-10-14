@@ -49,13 +49,3 @@ class LinkedList:
             if self.head is None:
                 self.tail = None
             return node.data
-
-    
-linked_list = LinkedList()
-linked_list.append(10)
-linked_list.append(20)
-linked_list.append(30)
-
-linked_list.display()
-
-print(linked_list.size())
