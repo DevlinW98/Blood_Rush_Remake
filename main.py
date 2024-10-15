@@ -3,15 +3,24 @@ import sys
 from config import *
 from sprites import *
 import random
+import time
 from Linked_List_system import LinkedList
+
 
 class Game:
     def __init__(self) -> None:
-        pygame.init
+        pygame.init()
         pygame.font.init()
+        pygame.mixer.init()
+        
+        self.game_duration = 185000
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         self.clock = pygame.time.Clock()
         self.running = True
+        self.bg_intro_image = Gif_Image("assets/BG_Start_Game/BG2.gif",(SCREEN_WIDTH,SCREEN_HEIGHT))
+        
+        self.Blood_rush_Theam = pygame.mixer.Sound("assets/Music/Blood_rush_Theam.mp3")
+        self.Blood_rush_Theam.set_volume(0.4)
         self.character_spritesheet = Spritesheet("assets/Docter/Test.png")
         self.Map_image = Spritesheet("assets/Map/WALL.png")
         self.Bed_image = Spritesheet("assets/Bed/Bed.png")
@@ -19,6 +28,7 @@ class Game:
         self.blood_bag_image = Spritesheet("assets/Blood_pack/Pixilart Sprite Sheet.png")
         self.iv_stand_image = Spritesheet("assets/IV_STAND/IV_STAND.png")
         self.bin_image = Spritesheet("assets/Bin/bin.png")
+        self.button_image = Spritesheet("assets/BUTTON/button2.png")
         self.NPC_Donate_image = [
             Spritesheet("assets/NPC/NPC1.png"),
             Spritesheet("assets/NPC/NPC2.png")
@@ -32,8 +42,7 @@ class Game:
         self.fontShadow = pygame.font.Font('assets/Font/PressStart2P-vaV7.ttf', 32)
         self.font.set_bold(True)
         self.fontShadow.set_bold(True)
-        self.npc_Donate_linkedlist = LinkedList()
-        self.npc_Req_linkedlist = LinkedList()
+        
         self.npc_move_Y = [int(SCREEN_HEIGHT - (MUTIPIE_SIZE * 55)),int(SCREEN_HEIGHT - (MUTIPIE_SIZE * 40)),int(SCREEN_HEIGHT - (MUTIPIE_SIZE * 25))]
         self.npc_donate_move_X = [int(MAP_START_POSITION_X+(MUTIPIE_SIZE*5)),int(MAP_START_POSITION_X+(MUTIPIE_SIZE*0)),int(MAP_START_POSITION_X+(MUTIPIE_SIZE*5)),int(MAP_START_POSITION_X+(MUTIPIE_SIZE*5))]
         self.npc_req_move_X = [MAP_START_POSITION_X+((MAP_SIZE_X*MUTIPIE_SIZE)-(40*MUTIPIE_SIZE)),MAP_START_POSITION_X+((MAP_SIZE_X*MUTIPIE_SIZE)-(35*MUTIPIE_SIZE)),MAP_START_POSITION_X+((MAP_SIZE_X*MUTIPIE_SIZE)-(40*MUTIPIE_SIZE)),MAP_START_POSITION_X+((MAP_SIZE_X*MUTIPIE_SIZE)-(40*MUTIPIE_SIZE))]
@@ -41,9 +50,18 @@ class Game:
         self.blood_groups = ["A","B","AB","O"]
         self.can_giving = {"A": ["A","O"],"B": ["B","O"],"AB": ["A","B","AB","O"],"O": ["O"]}
         self.last_action_time = 0
+        self.current_frame = 0
 
     def new_game(self):
+        self.Blood_rush_Theam.stop()
         self.playing = True
+        self.Blood_rush_Theam = pygame.mixer.Sound("assets/Music/intro_blood_rush.mp3")
+        self.Blood_rush_Theam.set_volume(0.5)
+        self.Blood_rush_Theam.play(-1)
+        self.score = 0
+        self.start_time = 0
+        self.npc_Donate_linkedlist = LinkedList()
+        self.npc_Req_linkedlist = LinkedList()
         self.all_sprites = pygame.sprite.LayeredUpdates()
         self.wall = pygame.sprite.LayeredUpdates()
         self.blood_storage_Layer = pygame.sprite.LayeredUpdates()
@@ -52,13 +70,14 @@ class Game:
         self.playerhitbox = pygame.sprite.LayeredUpdates()
         self.trigger_donate_zone = pygame.sprite.LayeredUpdates()
         self.create_wall_map()
-        
+
+        self.showscore = Text_Follow(self,10,40,str(self.score))
+        self.showtime = Text_Follow(self,10,0,"")
         self.player = Player(self)
         self.create_blood_storage()
-
-        
         self.create_npc_queue_req()
-        self.create_npc_queue_donate()                        
+        self.create_npc_queue_donate()
+        self.start_time = pygame.time.get_ticks()
         
     def event(self):
         for event in pygame.event.get():
@@ -71,12 +90,21 @@ class Game:
         self.update_npc_donate()
         self.update_npc_req()
         self.triger_box_check()
+        elapsed_time = pygame.time.get_ticks() - self.start_time
+        if elapsed_time > self.game_duration:
+            self.playing = False
 
     def draw(self):
         self.screen.fill(BLACK)
         self.all_sprites.draw(self.screen)
         self.clock.tick(FPS)
+        elapsed_time = pygame.time.get_ticks() - self.start_time
+        remaining_time = self.game_duration - elapsed_time
+        minutes = (remaining_time // 1000) // 60  
+        seconds = (remaining_time // 1000) % 60
+        self.showtime.update_text(f"{minutes}:{seconds:02d}")
         pygame.display.update()
+        
 
     def main(self):
         while self.playing:
@@ -84,15 +112,94 @@ class Game:
             self.update()
             self.draw()
         self.running = False
+        self.Blood_rush_Theam.set_volume(0.4)
+        time.sleep(0.1)
+        self.Blood_rush_Theam.set_volume(0.3)
+        time.sleep(0.1)
+        self.Blood_rush_Theam.set_volume(0.2)
+        time.sleep(0.1)
+        self.Blood_rush_Theam.set_volume(0.1)
+        time.sleep(0.1)
+        self.Blood_rush_Theam.stop()
 
     def gameover(self):
-        pass
+        self.intro = True
+        self.playing = False
+        self.all_sprites = pygame.sprite.LayeredUpdates()
+        self.button_sprites = pygame.sprite.LayeredUpdates()
+        
+        # สร้างปุ่ม Restart และ Back
+        restart_button = Button(self, "Restart", 480, 64, self.start_game)
+        back_button = Button(self, "Quit", 640, 64, self.quit_game)  # ปุ่ม Back เรียก intro_screen
+        self.button_sprites.add(restart_button)
+        self.button_sprites.add(back_button)
+
+        while not self.playing:  # แสดงหน้า game over
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+
+            # ล้างหน้าจอและแสดงคะแนน
+            self.screen.fill(BLACK)
+            score_text = self.font.render(f"Score: {self.score}", True, WHITE)  # แสดงคะแนน
+            text_rect = score_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 50))  # ตำแหน่งของคะแนน
+            self.screen.blit(score_text, text_rect)
+
+            # อัปเดตปุ่ม
+            self.button_sprites.update(self.screen)
+            
+            pygame.display.update()
+            self.clock.tick(30)
 
     def intro_screen(self):
-        pass
+        self.intro = True
+        self.Blood_rush_Theam.play(-1)
+        self.all_sprites = pygame.sprite.LayeredUpdates()
+        self.button_sprites = pygame.sprite.LayeredUpdates()
+        start_button = Button(self, "Start Game", 480, 33, self.start_game)
+        quit_button = Button(self, "Quit", 640, 33, self.quit_game)
+        self.button_sprites.add(start_button)
+        self.button_sprites.add(quit_button)
 
+        while self.intro:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+
+            self.current_frame = (self.current_frame + 1) % len(self.bg_intro_image.frames)
+            self.screen.blit(self.bg_intro_image.frames[self.current_frame], (0, 0))
+
+            
+            self.button_sprites.update(self.screen)  
+            
+            pygame.display.update()
+            self.clock.tick(30)
+
+
+    def start_game(self):
+        print("Starting the game...")
+        self.Blood_rush_Theam.set_volume(0.4)
+        time.sleep(0.1)
+        self.Blood_rush_Theam.set_volume(0.3)
+        time.sleep(0.1)
+        self.Blood_rush_Theam.set_volume(0.2)
+        time.sleep(0.1)
+        self.Blood_rush_Theam.set_volume(0.1)
+        time.sleep(0.1)
+        self.Blood_rush_Theam.stop()
+
+        self.intro = False
+        self.playing = True 
+        self.running = True
+        self.new_game()
+
+    def quit_game(self):
+        pygame.quit()
+        sys.exit()
     # ======================================= Create & Manage NPC =========================================================
-    def create_blood_donate(self):
+    def generate_blood_donate(self):
         data = {"A":0 , "B":0 , "AB":0 ,"O":0}
         current = self.npc_Donate_linkedlist.get_head_data() 
         for i in range(int(len(self.blood_storage))):
@@ -105,6 +212,7 @@ class Game:
 
         min_value = min(data.values())
         min_bloods = {key: value for key, value in data.items() if value == min_value}
+        
         if len(min_bloods) > 1:
             random_blood = random.choice(list(min_bloods.items()))
             random_dict = {random_blood[0]: random_blood[1]}
@@ -116,7 +224,7 @@ class Game:
             
 
     def create_npc_queue_donate(self):
-        blood_group = self.create_blood_donate()
+        blood_group = self.generate_blood_donate()
         random_img = random.choice(self.NPC_Donate_image)
         npc = NPC(self,self.npc_donate_move_X[3],SCREEN_HEIGHT,random_img,"Donate",blood_group)
         npc.add_text(Text_Follow(self,npc.rect.x,npc.rect.y,npc.blood_groups))
@@ -126,18 +234,6 @@ class Game:
             self.current_donate_npc = self.npc_Donate_linkedlist.get_head_data()
         else:
             self.current_donate_npc = self.current_donate_npc.next
-
-    def create_npc_queue_req(self):
-        random_img = random.choice(self.NPC_req_image)
-        random_blood = random.choice(self.blood_groups)
-        npc = NPC(self,self.npc_req_move_X[3],SCREEN_HEIGHT,random_img,"Need_Blood",random_blood)
-        npc.add_text(Text_Follow(self,npc.rect.x,npc.rect.y,npc.blood_groups))
-        self.npc_Req_linkedlist.append(npc)
-        npc.target_pos = (self.npc_req_move_X[self.npc_Req_linkedlist.size()-1],self.npc_move_Y[self.npc_Req_linkedlist.size()-1])
-        if self.npc_Req_linkedlist.size() == 1:
-            self.current_req_npc = self.npc_Req_linkedlist.get_head_data()
-        else:
-            self.current_req_npc = self.current_req_npc.next
 
     def update_npc_donate(self,command = ""):
         if not self.npc_Donate_linkedlist.isEmpty():
@@ -150,6 +246,18 @@ class Game:
                 self.create_npc_queue_donate()
         if self.npc_Donate_linkedlist.isEmpty():
             self.create_npc_queue_donate()
+
+    def create_npc_queue_req(self):
+        random_img = random.choice(self.NPC_req_image)
+        random_blood = random.choice(self.blood_groups)
+        npc = NPC(self,self.npc_req_move_X[3],SCREEN_HEIGHT,random_img,"Need_Blood",random_blood)
+        npc.add_text(Text_Follow(self,npc.rect.x,npc.rect.y,npc.blood_groups))
+        self.npc_Req_linkedlist.append(npc)
+        npc.target_pos = (self.npc_req_move_X[self.npc_Req_linkedlist.size()-1],self.npc_move_Y[self.npc_Req_linkedlist.size()-1])
+        if self.npc_Req_linkedlist.size() == 1:
+            self.current_req_npc = self.npc_Req_linkedlist.get_head_data()
+        else:
+            self.current_req_npc = self.current_req_npc.next
     
     def update_npc_req(self,command = ""):
         if not self.npc_Req_linkedlist.isEmpty():
@@ -245,11 +353,17 @@ class Game:
                     self.player.objcarry.rect.y = self.player.rect.y
                     self.player.objcarry.facing = "Idle"
                     self.update_npc_req("Update_Move")
-        elif self.bin_triger_box.check_Hit(self.playerhitbox) and self.player.iscarry is True and self.player.objcarry.type() == "Blood_Bag":
+
+        # elif self.bin_triger_box.check_Hit(self.playerhitbox) and self.player.iscarry is True and self.player.objcarry.type() == "Blood_Bag":
+        elif self.bin_triger_box.check_Hit(self.playerhitbox) and self.player.iscarry is True:
             if keys[pygame.K_SPACE]:
+                if self.player.objcarry.type() != "Blood_Bag":
+                    self.player.objcarry.kill_text()
                 self.player.objcarry.kill()
                 self.player.objcarry = None
                 self.player.iscarry = False
+                self.score -= 200
+                self.showscore.update_text(str(self.score))
 
 
         for i in range(int(len(self.blood_storage))):
@@ -305,13 +419,14 @@ class Game:
     
 def main():
     g = Game()
-    g.intro_screen()
-    g.new_game()
+    g.intro_screen()  
     while g.running:
-        g.main()
+        g.new_game()   
+        g.main()      
         g.gameover()
-    pygame.quit()
+    pygame.quit()      
     sys.exit()
+
 
 if __name__ == "__main__":
     main()

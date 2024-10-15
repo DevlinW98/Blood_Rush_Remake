@@ -1,6 +1,7 @@
 import pygame
 import random
 import math
+from PIL import Image
 from config  import *
 from stack_system import Stack 
 
@@ -13,6 +14,28 @@ class Spritesheet:
         sprite.blit(self.sheet, (0,0) , (x , y , width , height) )
         sprite.set_colorkey(WHITE)
         return sprite
+    
+class Gif_Image:
+    def __init__(self, filepath,target_size):
+        self._layer = 1
+        self.frames = self.load_gif(filepath,target_size)
+
+    def load_gif(self, filename, target_size):
+        gif = Image.open(filename)
+        frames = []
+        try:
+            while True:
+                frame = gif.copy().convert("RGBA")
+                pygame_image = pygame.image.fromstring(frame.tobytes(), frame.size, frame.mode)
+                
+                # Scale the frame to the target size
+                scaled_frame = pygame.transform.scale(pygame_image, target_size)
+                
+                frames.append(scaled_frame)
+                gif.seek(len(frames))  # Go to the next frame
+        except EOFError:
+            pass
+        return frames
 
 # ==============================================PLAYER===============================================================
 
@@ -400,6 +423,8 @@ class Bed(pygame.sprite.Sprite):
                 self.on_bed = None
                 self.blood_bag.kill()
                 self.blood_bag = None
+                self.game.score += 100
+                self.game.showscore.update_text(str(self.game.score))  
         
 
     def drawing_blood(self):
@@ -705,10 +730,10 @@ class Text_Follow(pygame.sprite.Sprite):
     def __init__(self, game, x=0, y=0, text=""):
         self.game = game
         self._layer = TEXT_LAYER
-        self.width = 20 * MUTIPIE_SIZE
+        self.width = 500 * MUTIPIE_SIZE
         self.height = 18 * MUTIPIE_SIZE
         self.text = text
-        self.groups = self.game.all_sprites ,
+        self.groups = self.game.all_sprites , self.game.button_sprites
         pygame.sprite.Sprite.__init__(self, self.groups)
 
         # สร้าง surface สำหรับ image
@@ -717,36 +742,103 @@ class Text_Follow(pygame.sprite.Sprite):
         self.rect.x = x
         self.rect.y = y
 
-        if len(self.text) == 1:
-            shadow_surface = self.game.fontShadow.render(self.text, True, RED_BLOOD_SHADOW)
-            shadow_rect = shadow_surface.get_rect(center=(self.image.get_width() // 2 + 2, 20 + 2))
-            shadow_surface2 = self.game.fontShadow.render(self.text, True, RED_BLOOD_SHADOW)
-            shadow_rect2 = shadow_surface2.get_rect(center=(self.image.get_width() // 2 + 2, 20 + 2))
-            text_surface = self.game.font.render(self.text, True, RED_BLOOD)
-            text_rect = text_surface.get_rect(center=(self.image.get_width() // 2, 20))
+        self.draw_text()
+
+    def update_text(self,text):
+        self.text = text
+        self.draw_text()
         
-            text_rect.x = 3 * MUTIPIE_SIZE 
-            text_rect.y = 5 * MUTIPIE_SIZE
-            shadow_rect.x = text_rect.x + 1 * MUTIPIE_SIZE
-            shadow_rect.y = text_rect.y 
-            shadow_rect2.x = text_rect.x
-            shadow_rect2.y = text_rect.y
-        elif len(self.text) == 2:
-            shadow_surface = self.game.font.render(self.text, True, RED_BLOOD_SHADOW)
-            shadow_rect = shadow_surface.get_rect(center=(self.image.get_width() // 2 + 2, 20 + 2))
-            shadow_surface2 = self.game.font.render(self.text, True, RED_BLOOD_SHADOW)
-            shadow_rect2 = shadow_surface2.get_rect(center=(self.image.get_width() // 2 + 2, 20 + 2))
-            text_surface = self.game.font.render(self.text, True, RED_BLOOD)
-            text_rect = text_surface.get_rect(center=(self.image.get_width() // 2, 20))
+    def draw_text(self):
+            if len(self.text) == 1:
+                shadow_surface = self.game.fontShadow.render(self.text, True, RED_BLOOD_SHADOW)
+                shadow_rect = shadow_surface.get_rect(center=(self.image.get_width() // 2 + 2, 20 + 2))
+                shadow_surface2 = self.game.fontShadow.render(self.text, True, RED_BLOOD_SHADOW)
+                shadow_rect2 = shadow_surface2.get_rect(center=(self.image.get_width() // 2 + 2, 20 + 2))
+                text_surface = self.game.font.render(self.text, True, RED_BLOOD)
+                text_rect = text_surface.get_rect(center=(self.image.get_width() // 2, 20))
+            
+                text_rect.x = 3 * MUTIPIE_SIZE 
+                text_rect.y = 5 * MUTIPIE_SIZE
+                shadow_rect.x = text_rect.x + 1 * MUTIPIE_SIZE
+                shadow_rect.y = text_rect.y 
+                shadow_rect2.x = text_rect.x
+                shadow_rect2.y = text_rect.y
+            else:
+                shadow_surface = self.game.font.render(self.text, True, RED_BLOOD_SHADOW)
+                shadow_rect = shadow_surface.get_rect(center=(self.image.get_width() // 2 + 2, 20 + 2))
+                shadow_surface2 = self.game.font.render(self.text, True, RED_BLOOD_SHADOW)
+                shadow_rect2 = shadow_surface2.get_rect(center=(self.image.get_width() // 2 + 2, 20 + 2))
+                text_surface = self.game.font.render(self.text, True, RED_BLOOD)
+                text_rect = text_surface.get_rect(center=(self.image.get_width() // 2, 20))
 
-            text_rect.x = 1 * MUTIPIE_SIZE
-            text_rect.y = 5 * MUTIPIE_SIZE
-            shadow_rect.x = text_rect.x + 1 * MUTIPIE_SIZE
-            shadow_rect.y = text_rect.y 
-            shadow_rect2.x = text_rect.x + 2 * MUTIPIE_SIZE
-            shadow_rect2.y = text_rect.y 
+                text_rect.x = 1 * MUTIPIE_SIZE
+                text_rect.y = 5 * MUTIPIE_SIZE
+                shadow_rect.x = text_rect.x + 1 * MUTIPIE_SIZE
+                shadow_rect.y = text_rect.y 
+                shadow_rect2.x = text_rect.x + 2 * MUTIPIE_SIZE
+                shadow_rect2.y = text_rect.y 
 
-        # Blit text onto the image
-        self.image.blit(shadow_surface, shadow_rect)
-        self.image.blit(shadow_surface2, shadow_rect2)
-        self.image.blit(text_surface, text_rect)
+            self.image.fill((0, 0, 0, 0))
+            self.image.blit(shadow_surface, shadow_rect)
+            self.image.blit(shadow_surface2, shadow_rect2)
+            self.image.blit(text_surface, text_rect)
+    
+
+class Button(pygame.sprite.Sprite):
+    def __init__(self, game, text, y, width, action=None):
+        self._layer = 2
+        self.game = game
+        self.text = text
+        
+        self.groups = self.game.all_sprites
+        pygame.sprite.Sprite.__init__(self, self.groups)
+
+        # Set button width
+        if width <= 32:
+            self.width = 32
+        elif width <= 64:
+            self.width = 64
+        else:
+            self.width = 104
+            
+        self.height = 32
+        self.x = (SCREEN_WIDTH - width) / 2
+        self.y = y
+        
+        self.color = GRAY_FONT
+        self.hover_color = GRAY_SHADOW_FONT
+        self.action = action
+        self.font = self.game.font
+
+        # Initial button image
+        self.image = self.game.button_image.get_sprite(self.width, self.width - 32, self.width, self.height)
+        self.image = pygame.transform.scale(self.image, (self.width * MUTIPIE_SIZE, self.height * MUTIPIE_SIZE))
+        self.image.set_colorkey(BLACK)
+        self.rect = self.image.get_rect()
+        self.rect.x = self.x - (26 * MUTIPIE_SIZE)
+        self.rect.y = self.y - (12 * MUTIPIE_SIZE)
+
+        
+
+    def update(self,screen):
+        mouse = pygame.mouse.get_pos()
+        click = pygame.mouse.get_pressed()
+
+        if self.rect.collidepoint(mouse):
+            text_surface = self.font.render(self.text, True, BLACK)
+            text_rect = text_surface.get_rect(center=(self.rect.centerx, self.rect.centery))
+            self.image = self.game.button_image.get_sprite(0, self.width - 32, self.width, self.height)
+            self.image = pygame.transform.scale(self.image, (self.width * MUTIPIE_SIZE, self.height * MUTIPIE_SIZE))
+            if click[0] == 1 and self.action:
+                self.action()
+        else:
+            text_surface = self.font.render(self.text, True, GRAY_SHADOW_FONT)
+            text_rect = text_surface.get_rect(center=(self.rect.centerx, self.rect.centery))
+            self.image = self.game.button_image.get_sprite(self.width, self.width - 32, self.width, self.height)
+            self.image = pygame.transform.scale(self.image, (self.width * MUTIPIE_SIZE, self.height * MUTIPIE_SIZE))
+        
+        self.rect.x = self.x - (26 * MUTIPIE_SIZE)
+        self.rect.y = self.y - (12 * MUTIPIE_SIZE)
+        
+        screen.blit(self.image, self.rect) 
+        screen.blit(text_surface, text_rect)
