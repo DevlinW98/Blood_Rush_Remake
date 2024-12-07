@@ -19,8 +19,8 @@ class Game:
         self.running = True
         self.bg_intro_image = Gif_Image("assets/BG_Start_Game/BG2.gif",(SCREEN_WIDTH,SCREEN_HEIGHT))
         
-        self.Blood_rush_Theam = pygame.mixer.Sound("assets/Music/Blood_rush_Theam.mp3")
-        self.Blood_rush_Theam.set_volume(0.4)
+        self.Blood_rush_Theam = pygame.mixer.Sound("assets/Music/チャレンジ_-_8bit.mp3")
+        self.Blood_rush_Theam.set_volume(0.1)
         self.character_spritesheet = Spritesheet("assets/Docter/Test.png")
         self.Map_image = Spritesheet("assets/Map/WALL.png")
         self.Bed_image = Spritesheet("assets/Bed/Bed.png")
@@ -55,8 +55,8 @@ class Game:
     def new_game(self):
         self.Blood_rush_Theam.stop()
         self.playing = True
-        self.Blood_rush_Theam = pygame.mixer.Sound("assets/Music/intro_blood_rush.mp3")
-        self.Blood_rush_Theam.set_volume(0.5)
+        self.Blood_rush_Theam = pygame.mixer.Sound("assets/Music/琥珀糖のワルツ_-_8bit.mp3")
+        self.Blood_rush_Theam.set_volume(0.1)
         self.Blood_rush_Theam.play(-1)
         self.score = 0
         self.start_time = 0
@@ -69,7 +69,7 @@ class Game:
         self.text = pygame.sprite.LayeredUpdates()
         self.playerhitbox = pygame.sprite.LayeredUpdates()
         self.trigger_donate_zone = pygame.sprite.LayeredUpdates()
-        self.create_wall_map()
+        self.create_map()
 
         self.showscore = Text_Follow(self,10,40,str(self.score))
         self.showtime = Text_Follow(self,10,0,"")
@@ -112,14 +112,6 @@ class Game:
             self.update()
             self.draw()
         self.running = False
-        self.Blood_rush_Theam.set_volume(0.4)
-        time.sleep(0.1)
-        self.Blood_rush_Theam.set_volume(0.3)
-        time.sleep(0.1)
-        self.Blood_rush_Theam.set_volume(0.2)
-        time.sleep(0.1)
-        self.Blood_rush_Theam.set_volume(0.1)
-        time.sleep(0.1)
         self.Blood_rush_Theam.stop()
 
     def gameover(self):
@@ -180,14 +172,6 @@ class Game:
 
     def start_game(self):
         print("Starting the game...")
-        self.Blood_rush_Theam.set_volume(0.4)
-        time.sleep(0.1)
-        self.Blood_rush_Theam.set_volume(0.3)
-        time.sleep(0.1)
-        self.Blood_rush_Theam.set_volume(0.2)
-        time.sleep(0.1)
-        self.Blood_rush_Theam.set_volume(0.1)
-        time.sleep(0.1)
         self.Blood_rush_Theam.stop()
 
         self.intro = False
@@ -272,7 +256,7 @@ class Game:
             self.create_npc_queue_req()
 
     # ======================================= Create Map =========================================================
-    def create_wall_map(self):
+    def create_map(self):
         self.map = Map(self)
         # TOP
         Wall(self,MAP_START_POSITION_X,MAP_START_POSITION_Y,MAP_SIZE_X*MUTIPIE_SIZE,40*MUTIPIE_SIZE)
@@ -303,7 +287,7 @@ class Game:
             Down_Bed(self,x_bed,y_bed)
             Iv_Stand(self,x_bed+(12*MUTIPIE_SIZE),y_bed-(19*MUTIPIE_SIZE))
             Wall(self,x_bed,y_bed,20*MUTIPIE_SIZE,41*MUTIPIE_SIZE)
-            self.bed[i].append(TrigerBox(self,x_bed-(8*MUTIPIE_SIZE),y_bed+(10*MUTIPIE_SIZE),36*MUTIPIE_SIZE,30*MUTIPIE_SIZE)) 
+            self.bed[i].append(TrigerBox(self,x_bed-(8*MUTIPIE_SIZE),y_bed+(10*MUTIPIE_SIZE),36*MUTIPIE_SIZE,40*MUTIPIE_SIZE)) 
             x_bed += 58*MUTIPIE_SIZE
             
 

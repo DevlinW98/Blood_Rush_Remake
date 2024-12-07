@@ -69,7 +69,7 @@ class Player(pygame.sprite.Sprite):
         self.rect.x = self.x
         self.rect.y = self.y
 
-        self.Hitbox = Player_Hitbox(game,self.x+(9*MUTIPIE_SIZE),self.y+(20*MUTIPIE_SIZE),14*MUTIPIE_SIZE,10*MUTIPIE_SIZE)
+        self.Hitbox = Player_Hitbox(game,self.x+(9*MUTIPIE_SIZE),self.y+(20*MUTIPIE_SIZE),10*MUTIPIE_SIZE,8*MUTIPIE_SIZE)
         
     def update(self):
         self.movement()
@@ -199,12 +199,12 @@ class Player(pygame.sprite.Sprite):
             elif self.Hitbox.check_Wall_Hit_xy() == "bottom":
                 self.rect.y -= 1
                 
-            self.Hitbox.setposition(self.rect.x + (9 * MUTIPIE_SIZE), self.rect.y + (20 * MUTIPIE_SIZE))
+            self.Hitbox.setposition(self.rect.x + (11 * MUTIPIE_SIZE), self.rect.y + (20 * MUTIPIE_SIZE))
         else:
             self.rect.x += self.x_change
             self.rect.y += self.y_change
 
-            self.Hitbox.setposition(self.rect.x + (9 * MUTIPIE_SIZE), self.rect.y + (20 * MUTIPIE_SIZE))
+            self.Hitbox.setposition(self.rect.x + (11 * MUTIPIE_SIZE), self.rect.y + (20 * MUTIPIE_SIZE))
 
     def popobjcarry(self):
         self.iscarry = False
@@ -415,6 +415,9 @@ class Bed(pygame.sprite.Sprite):
             if self.blood_bag.status == "Full":
                 self.status = "Success"
                 self.on_bed.kill_text()
+                self.game.score += 50
+                self.game.showscore.update_text(str(self.game.score))
+                
         if self.status == "Giving blood":
             if self.blood_bag.status == "Empty":
                 self.status = ""
@@ -424,7 +427,7 @@ class Bed(pygame.sprite.Sprite):
                 self.blood_bag.kill()
                 self.blood_bag = None
                 self.game.score += 100
-                self.game.showscore.update_text(str(self.game.score))  
+                self.game.showscore.update_text(str(self.game.score))
         
 
     def drawing_blood(self):
