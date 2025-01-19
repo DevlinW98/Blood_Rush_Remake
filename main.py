@@ -29,13 +29,26 @@ class Game:
         self.iv_stand_image = Spritesheet("assets/IV_STAND/IV_STAND.png")
         self.bin_image = Spritesheet("assets/Bin/bin.png")
         self.button_image = Spritesheet("assets/BUTTON/button2.png")
+        self.logo_image = Spritesheet("assets/Logo/logo.png")
+        self.NPC_TAE_image = Spritesheet("assets/NPC/NPC_TAE.png")
         self.NPC_Donate_image = [
             Spritesheet("assets/NPC/NPC1.png"),
-            Spritesheet("assets/NPC/NPC2.png")
+            Spritesheet("assets/NPC/NPC2.png"),
+            Spritesheet("assets/NPC/NPC3.png"),
+            Spritesheet("assets/NPC/NPC4.png"),
+            Spritesheet("assets/NPC/NPC5.png"),
+            Spritesheet("assets/NPC/NPC6.png"),
+            Spritesheet("assets/NPC/NPC7.png"),
+            
         ]
         self.NPC_req_image = [
             Spritesheet("assets/NPC/NPC1S.png"),
-            Spritesheet("assets/NPC/NPC2S.png")
+            Spritesheet("assets/NPC/NPC2S.png"),
+            Spritesheet("assets/NPC/NPC3S.png"),
+            Spritesheet("assets/NPC/NPC4S.png"),
+            Spritesheet("assets/NPC/NPC5S.png"),
+            Spritesheet("assets/NPC/NPC6S.png"),
+            Spritesheet("assets/NPC/NPC7S.png"),
         ]
 
         self.font = pygame.font.Font('assets/Font/PressStart2P-vaV7.ttf', 26)
@@ -148,9 +161,12 @@ class Game:
         self.intro = True
         self.Blood_rush_Theam.play(-1)
         self.all_sprites = pygame.sprite.LayeredUpdates()
+        self.logo_sprites = pygame.sprite.LayeredUpdates()
         self.button_sprites = pygame.sprite.LayeredUpdates()
+        logo = Logo(self)
         start_button = Button(self, "Start Game", 480, 33, self.start_game)
         quit_button = Button(self, "Quit", 640, 33, self.quit_game)
+        self.logo_sprites.add(logo)
         self.button_sprites.add(start_button)
         self.button_sprites.add(quit_button)
 
@@ -164,6 +180,7 @@ class Game:
             self.screen.blit(self.bg_intro_image.frames[self.current_frame], (0, 0))
 
             
+            self.logo_sprites.update(self.screen)  
             self.button_sprites.update(self.screen)  
             
             pygame.display.update()
@@ -184,33 +201,42 @@ class Game:
         sys.exit()
     # ======================================= Create & Manage NPC =========================================================
     def generate_blood_donate(self):
-        data = {"A":0 , "B":0 , "AB":0 ,"O":0}
-        current = self.npc_Donate_linkedlist.get_head_data() 
-        for i in range(int(len(self.blood_storage))):
-            if self.blood_storage[i][0].bloodgroups != "":
-                data[self.blood_storage[i][0].bloodgroups] += self.blood_storage[i][0].inventory.size()
-        while current:
-            blood = current.data.blood_groups
-            data[blood] += 1
-            current = current.next
-
-        min_value = min(data.values())
-        min_bloods = {key: value for key, value in data.items() if value == min_value}
-        
-        if len(min_bloods) > 1:
-            random_blood = random.choice(list(min_bloods.items()))
-            random_dict = {random_blood[0]: random_blood[1]}
-            result = list(random_dict.keys())[0]
-            
+        random_num = random.randint(1,20)
+        if random_num == 7:
+            result = "TAE"
         else:
-            result = list(min_bloods.keys())[0]
+            data = {"A":0 , "B":0 , "AB":0 ,"O":0}
+            current = self.npc_Donate_linkedlist.get_head_data() 
+            for i in range(int(len(self.blood_storage))):
+                if self.blood_storage[i][0].bloodgroups != "":
+                    data[self.blood_storage[i][0].bloodgroups] += self.blood_storage[i][0].inventory.size()
+            while current:
+                blood = current.data.blood_groups
+                if blood != "TAE":
+                    data[blood] += 1
+                current = current.next
+
+            min_value = min(data.values())
+            min_bloods = {key: value for key, value in data.items() if value == min_value}
+            
+            if len(min_bloods) > 1:
+                random_blood = random.choice(list(min_bloods.items()))
+                random_dict = {random_blood[0]: random_blood[1]}
+                result = list(random_dict.keys())[0]
+                
+            else:
+                result = list(min_bloods.keys())[0]
         return result
             
 
     def create_npc_queue_donate(self):
         blood_group = self.generate_blood_donate()
-        random_img = random.choice(self.NPC_Donate_image)
-        npc = NPC(self,self.npc_donate_move_X[3],SCREEN_HEIGHT,random_img,"Donate",blood_group)
+        if blood_group == "TAE":
+            random_img = self.NPC_TAE_image
+            npc = NPC(self,self.npc_donate_move_X[3],SCREEN_HEIGHT,random_img,"TAE",blood_group)
+        else:
+            random_img = random.choice(self.NPC_Donate_image)
+            npc = NPC(self,self.npc_donate_move_X[3],SCREEN_HEIGHT,random_img,"Donate",blood_group)
         npc.add_text(Text_Follow(self,npc.rect.x,npc.rect.y,npc.blood_groups))
         self.npc_Donate_linkedlist.append(npc)
         npc.target_pos = (self.npc_donate_move_X[self.npc_Donate_linkedlist.size()-1],self.npc_move_Y[self.npc_Donate_linkedlist.size()-1])
@@ -261,7 +287,7 @@ class Game:
         # TOP
         Wall(self,MAP_START_POSITION_X,MAP_START_POSITION_Y,MAP_SIZE_X*MUTIPIE_SIZE,40*MUTIPIE_SIZE)
         Bin(self,MAP_START_POSITION_X +(4*MUTIPIE_SIZE) ,20*MUTIPIE_SIZE)
-        self.bin_triger_box = TrigerBox(self,MAP_START_POSITION_X +(4*MUTIPIE_SIZE),40*MUTIPIE_SIZE,5*MUTIPIE_SIZE,10*MUTIPIE_SIZE)
+        self.bin_triger_box = TrigerBox(self,MAP_START_POSITION_X +(4*MUTIPIE_SIZE),40*MUTIPIE_SIZE,17*MUTIPIE_SIZE,12*MUTIPIE_SIZE)
 
         # Left
         Wall(self,MAP_START_POSITION_X,MAP_START_POSITION_Y,4*MUTIPIE_SIZE,MAP_SIZE_Y*MUTIPIE_SIZE)
@@ -341,13 +367,23 @@ class Game:
         # elif self.bin_triger_box.check_Hit(self.playerhitbox) and self.player.iscarry is True and self.player.objcarry.type() == "Blood_Bag":
         elif self.bin_triger_box.check_Hit(self.playerhitbox) and self.player.iscarry is True:
             if keys[pygame.K_SPACE]:
-                if self.player.objcarry.type() != "Blood_Bag":
+                if self.player.objcarry.type() == "Blood_Bag":
+                    self.score -= 300
+
+                elif self.player.objcarry.type() == "NPC" and self.player.objcarry.istae():
                     self.player.objcarry.kill_text()
+                    self.score += 607
+
+                elif self.player.objcarry.type() != "Blood_Bag":
+                    self.player.objcarry.kill_text()
+                    self.score -= 200
+                
+                
                 self.player.objcarry.kill()
                 self.player.objcarry = None
                 self.player.iscarry = False
-                self.score -= 200
                 self.showscore.update_text(str(self.score))
+                
 
 
         for i in range(int(len(self.blood_storage))):
@@ -380,7 +416,7 @@ class Game:
         for i in range(int(len(self.bed))):
             if self.bed[i][1].check_Hit(self.playerhitbox):
                 if keys[pygame.K_SPACE]:
-                    if self.player.iscarry is True and self.player.objcarry.type() == "NPC" and self.bed[i][0].on_bed == None:
+                    if self.player.iscarry is True and self.player.objcarry.type() == "NPC" and self.bed[i][0].on_bed == None and not self.player.objcarry.istae():
                         self.bed[i][0].add_to_bed(self.player.popobjcarry())
                         
                     elif self.player.iscarry is True and self.bed[i][0].on_bed != None and self.player.objcarry.type() == "Blood_Bag":

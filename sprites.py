@@ -591,6 +591,12 @@ class NPC(pygame.sprite.Sprite):
     
     def type(self):
         return "NPC"
+    
+    def istae(self):
+        if self.blood_groups == "TAE":
+            return True
+    
+    
 
 
 # ==============================================TrigerBox===============================================================
@@ -766,6 +772,21 @@ class Text_Follow(pygame.sprite.Sprite):
                 shadow_rect.y = text_rect.y 
                 shadow_rect2.x = text_rect.x
                 shadow_rect2.y = text_rect.y
+
+            elif len(self.text) == 3 and self.text == "TAE":
+                shadow_surface = self.game.font.render(self.text, True, RED_BLOOD_SHADOW)
+                shadow_rect = shadow_surface.get_rect(center=(self.image.get_width() // 2 + 2, 20 + 2))
+                shadow_surface2 = self.game.font.render(self.text, True, RED_BLOOD_SHADOW)
+                shadow_rect2 = shadow_surface2.get_rect(center=(self.image.get_width() // 2 + 2, 20 + 2))
+                text_surface = self.game.font.render(self.text, True, RED_BLOOD)
+                text_rect = text_surface.get_rect(center=(self.image.get_width() // 2, 20))
+                text_rect.x = -1 * MUTIPIE_SIZE
+                text_rect.y = 5 * MUTIPIE_SIZE
+                shadow_rect.x = text_rect.x + 1 * MUTIPIE_SIZE
+                shadow_rect.y = text_rect.y 
+                shadow_rect2.x = text_rect.x + 2 * MUTIPIE_SIZE
+                shadow_rect2.y = text_rect.y 
+                
             else:
                 shadow_surface = self.game.font.render(self.text, True, RED_BLOOD_SHADOW)
                 shadow_rect = shadow_surface.get_rect(center=(self.image.get_width() // 2 + 2, 20 + 2))
@@ -845,3 +866,35 @@ class Button(pygame.sprite.Sprite):
         
         screen.blit(self.image, self.rect) 
         screen.blit(text_surface, text_rect)
+
+
+
+class Logo(pygame.sprite.Sprite):
+    def __init__(self, game):
+        self._layer = 5
+        self.game = game
+        
+        self.groups = self.game.all_sprites
+        pygame.sprite.Sprite.__init__(self, self.groups)       
+        self.height = 80
+        self.width = 80
+        self.x = ((SCREEN_WIDTH - self.width) / 2)/1.5
+        self.y = 40 * MUTIPIE_SIZE
+        
+        self.color = GRAY_FONT
+        self.hover_color = GRAY_SHADOW_FONT
+        self.font = self.game.font
+
+        # Initial button image
+        self.image = self.game.logo_image.get_sprite(3, 0, self.width, self.height)
+        self.image = pygame.transform.scale(self.image, ((self.width * MUTIPIE_SIZE)*2, (self.height * MUTIPIE_SIZE)*2))
+        self.image.set_colorkey(BLACK)
+        self.rect = self.image.get_rect()
+        self.rect.x = self.x - (26 * MUTIPIE_SIZE)
+        self.rect.y = self.y - (12 * MUTIPIE_SIZE)
+
+    def update(self,screen):
+        self.rect.x = self.x - (26 * MUTIPIE_SIZE)
+        self.rect.y = self.y - (12 * MUTIPIE_SIZE)
+        screen.blit(self.image, self.rect) 
+
