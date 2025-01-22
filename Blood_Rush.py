@@ -1,11 +1,47 @@
 import pygame
 import sys
+import os
 from config import *
 from sprites import *
 import random
 import time
 from Linked_List_system import LinkedList
+current_dir = os.path.dirname(os.path.abspath(__file__))
+gif_path = os.path.join(current_dir, 'assets', 'BG_Start_Game', 'BG2.gif')
 
+Charenji8bit = os.path.join(current_dir, 'assets', 'Music', 'Charenji8bit.mp3')
+Kohakutonowarutsu8bit = os.path.join(current_dir, 'assets', 'Music', 'Kohakutonowarutsu8bit.mp3')
+
+Doctor = os.path.join(current_dir, 'assets', 'Docter', 'Test.png')
+
+Map_img = os.path.join(current_dir, 'assets', 'Map', 'WALL.png')
+Bed_image = os.path.join(current_dir, 'assets', 'Bed', 'Bed.png')
+blood_storage_image = os.path.join(current_dir, 'assets', 'Blood storage cabinet', 'Blood storage cabinet.png')
+blood_bag_image = os.path.join(current_dir, 'assets', 'Blood_pack', 'Pixilart Sprite Sheet.png')
+iv_stand_image = os.path.join(current_dir, 'assets', 'IV_STAND', 'IV_STAND.png')
+bin_image = os.path.join(current_dir, 'assets', 'Bin', 'bin.png')
+button_image = os.path.join(current_dir, 'assets', 'BUTTON', 'button2.png')
+logo_image = os.path.join(current_dir, 'assets', 'Logo', 'logo.png')
+NPC_TAE_image = os.path.join(current_dir, 'assets', 'NPC', 'NPC_TAE.png')
+
+NPC1 = os.path.join(current_dir, 'assets', 'NPC', 'NPC1.png')
+NPC2 = os.path.join(current_dir, 'assets', 'NPC', 'NPC2.png')
+NPC3 = os.path.join(current_dir, 'assets', 'NPC', 'NPC3.png')
+NPC4 = os.path.join(current_dir, 'assets', 'NPC', 'NPC4.png')
+NPC5 = os.path.join(current_dir, 'assets', 'NPC', 'NPC5.png')
+NPC6 = os.path.join(current_dir, 'assets', 'NPC', 'NPC6.png')
+NPC7 = os.path.join(current_dir, 'assets', 'NPC', 'NPC7.png')
+
+NPC1S = os.path.join(current_dir, 'assets', 'NPC', 'NPC1S.png')
+NPC2S = os.path.join(current_dir, 'assets', 'NPC', 'NPC2S.png')
+NPC3S = os.path.join(current_dir, 'assets', 'NPC', 'NPC3S.png')
+NPC4S = os.path.join(current_dir, 'assets', 'NPC', 'NPC4S.png')
+NPC5S = os.path.join(current_dir, 'assets', 'NPC', 'NPC5S.png')
+NPC6S = os.path.join(current_dir, 'assets', 'NPC', 'NPC6S.png')
+NPC7S = os.path.join(current_dir, 'assets', 'NPC', 'NPC7S.png')
+
+font = os.path.join(current_dir, 'assets', 'Font', 'PressStart2P-vaV7.ttf')
+fontShadow = os.path.join(current_dir, 'assets', 'Font', 'PressStart2P-vaV7.ttf')
 
 class Game:
     def __init__(self) -> None:
@@ -17,42 +53,42 @@ class Game:
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         self.clock = pygame.time.Clock()
         self.running = True
-        self.bg_intro_image = Gif_Image("assets/BG_Start_Game/BG2.gif",(SCREEN_WIDTH,SCREEN_HEIGHT))
+        self.bg_intro_image = Gif_Image(gif_path, (SCREEN_WIDTH, SCREEN_HEIGHT))
         
-        self.Blood_rush_Theam = pygame.mixer.Sound("assets/Music/チャレンジ_-_8bit.mp3")
+        self.Blood_rush_Theam = pygame.mixer.Sound(Charenji8bit)
         self.Blood_rush_Theam.set_volume(0.1)
-        self.character_spritesheet = Spritesheet("assets/Docter/Test.png")
-        self.Map_image = Spritesheet("assets/Map/WALL.png")
-        self.Bed_image = Spritesheet("assets/Bed/Bed.png")
-        self.blood_storage_image = Spritesheet("assets/Blood storage cabinet/Blood storage cabinet.png")
-        self.blood_bag_image = Spritesheet("assets/Blood_pack/Pixilart Sprite Sheet.png")
-        self.iv_stand_image = Spritesheet("assets/IV_STAND/IV_STAND.png")
-        self.bin_image = Spritesheet("assets/Bin/bin.png")
-        self.button_image = Spritesheet("assets/BUTTON/button2.png")
-        self.logo_image = Spritesheet("assets/Logo/logo.png")
-        self.NPC_TAE_image = Spritesheet("assets/NPC/NPC_TAE.png")
+        self.character_spritesheet = Spritesheet(Doctor)
+        self.Map_image = Spritesheet(Map_img)
+        self.Bed_image = Spritesheet(Bed_image)
+        self.blood_storage_image = Spritesheet(blood_storage_image)
+        self.blood_bag_image = Spritesheet(blood_bag_image)
+        self.iv_stand_image = Spritesheet(iv_stand_image)
+        self.bin_image = Spritesheet(bin_image)
+        self.button_image = Spritesheet(button_image)
+        self.logo_image = Spritesheet(logo_image)
+        self.NPC_TAE_image = Spritesheet(NPC_TAE_image)
         self.NPC_Donate_image = [
-            Spritesheet("assets/NPC/NPC1.png"),
-            Spritesheet("assets/NPC/NPC2.png"),
-            Spritesheet("assets/NPC/NPC3.png"),
-            Spritesheet("assets/NPC/NPC4.png"),
-            Spritesheet("assets/NPC/NPC5.png"),
-            Spritesheet("assets/NPC/NPC6.png"),
-            Spritesheet("assets/NPC/NPC7.png"),
+            Spritesheet(NPC1),
+            Spritesheet(NPC2),
+            Spritesheet(NPC3),
+            Spritesheet(NPC4),
+            Spritesheet(NPC5),
+            Spritesheet(NPC6),
+            Spritesheet(NPC7),
             
         ]
         self.NPC_req_image = [
-            Spritesheet("assets/NPC/NPC1S.png"),
-            Spritesheet("assets/NPC/NPC2S.png"),
-            Spritesheet("assets/NPC/NPC3S.png"),
-            Spritesheet("assets/NPC/NPC4S.png"),
-            Spritesheet("assets/NPC/NPC5S.png"),
-            Spritesheet("assets/NPC/NPC6S.png"),
-            Spritesheet("assets/NPC/NPC7S.png"),
+            Spritesheet(NPC1S),
+            Spritesheet(NPC2S),
+            Spritesheet(NPC3S),
+            Spritesheet(NPC4S),
+            Spritesheet(NPC5S),
+            Spritesheet(NPC6S),
+            Spritesheet(NPC7S),
         ]
 
-        self.font = pygame.font.Font('assets/Font/PressStart2P-vaV7.ttf', 26)
-        self.fontShadow = pygame.font.Font('assets/Font/PressStart2P-vaV7.ttf', 32)
+        self.font = pygame.font.Font(font, 26)
+        self.fontShadow = pygame.font.Font(fontShadow, 32)
         self.font.set_bold(True)
         self.fontShadow.set_bold(True)
         
@@ -68,7 +104,7 @@ class Game:
     def new_game(self):
         self.Blood_rush_Theam.stop()
         self.playing = True
-        self.Blood_rush_Theam = pygame.mixer.Sound("assets/Music/琥珀糖のワルツ_-_8bit.mp3")
+        self.Blood_rush_Theam = pygame.mixer.Sound(Kohakutonowarutsu8bit)
         self.Blood_rush_Theam.set_volume(0.1)
         self.Blood_rush_Theam.play(-1)
         self.score = 0
@@ -219,6 +255,7 @@ class Game:
             min_value = min(data.values())
             min_bloods = {key: value for key, value in data.items() if value == min_value}
             
+            
             if len(min_bloods) > 1:
                 random_blood = random.choice(list(min_bloods.items()))
                 random_dict = {random_blood[0]: random_blood[1]}
@@ -226,6 +263,10 @@ class Game:
                 
             else:
                 result = list(min_bloods.keys())[0]
+            print(data)
+            print(min_bloods)
+            print(result)
+            print("")
         return result
             
 
