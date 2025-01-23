@@ -39,13 +39,19 @@ NPC4S = os.path.join(current_dir, 'assets', 'NPC', 'NPC4S.png')
 NPC5S = os.path.join(current_dir, 'assets', 'NPC', 'NPC5S.png')
 NPC6S = os.path.join(current_dir, 'assets', 'NPC', 'NPC6S.png')
 NPC7S = os.path.join(current_dir, 'assets', 'NPC', 'NPC7S.png')
+icon_path = os.path.join(current_dir, 'assets', 'Icon', 'Icon.ico')
+
 
 font = os.path.join(current_dir, 'assets', 'Font', 'PressStart2P-vaV7.ttf')
 fontShadow = os.path.join(current_dir, 'assets', 'Font', 'PressStart2P-vaV7.ttf')
 
+
 class Game:
     def __init__(self) -> None:
         pygame.init()
+        pygame.display.set_caption("Blood Rush")
+        icon_surface = pygame.image.load(icon_path)
+        pygame.display.set_icon(icon_surface)
         pygame.font.init()
         pygame.mixer.init()
         
@@ -237,7 +243,7 @@ class Game:
         sys.exit()
     # ======================================= Create & Manage NPC =========================================================
     def generate_blood_donate(self):
-        random_num = random.randint(1,20)
+        random_num = random.randint(1,100)
         if random_num == 7:
             result = "TAE"
         else:
